@@ -1,0 +1,16 @@
+metadata: {
+  date: ISODate("2000-10-10T00:00:00Z")
+},
+total: 0,
+total_inbound: 0,
+total_outbound: 0,
+hourly : {
+  0: 100,
+  1: 100,
+  23: 100
+},
+minute: {
+  0: {0:0,1:0},
+  1: {60:0,61:0},
+  23: {1439:0}
+}

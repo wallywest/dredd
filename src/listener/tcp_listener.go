@@ -21,32 +21,31 @@ func TCPListen(addr string, port int) (listener *TCPListener) {
   listener = &TCPListener{}
 
   listener.c_messages = make(chan string)
-  listener.c_packets= make(chan string)
+  listener.c_packets = make(chan string)
 
   listener.addr = addr
   listener.port = port
 
-  go listener.listen()
   go listener.readRawSocket()
   return
 }
 
-func (t *TCPListener) listen() {
-  for {
-    select {
-    case message := <-t.c_packets:
-      fmt.Println("got packet")
-      stream := &Stream{data: message}
-      go stream.Process()
-    }
-  }
-}
+
+/*func (t *TCPListener) listen() {*/
+  //for {
+    //select {
+    //case message := <-t.c_packets:
+      //stream := &Stream{data: message}
+      //go stream.Process(t.collection)
+    //}
+  //}
+/*}*/
 
 func (t *TCPListener) readRawSocket() {
-  socket, err := net.Listen("tcp",":10503")
+  socket, err := net.Listen("tcp",":10500")
   defer socket.Close()
   if err != nil {
-    fmt.Println(err)
+    fmt.Printf("Error is: %v\n",err)
   }
 
   for {
@@ -68,7 +67,9 @@ func (t *TCPListener) readPackets(conn net.Conn, reader *bufio.Reader) {
       //fmt.Printf("Error: %v",err)
       return
     }
-    t.c_packets<- message
+    //fmt.Println(message)
+    //fmt.Println("--------------")
+    t.c_messages <- message
     t.sendAck(conn)
   }
 }
