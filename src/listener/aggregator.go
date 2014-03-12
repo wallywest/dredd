@@ -4,14 +4,12 @@ import(
   "strconv"
   "time"
   "fmt"
-  "labix.org/v2/mgo"
-  "labix.org/v2/mgo/bson"
 )
 
 type Aggregator struct {
-  collection *mgo.Collection
   message_chan chan loadmonMessage
   listeners []chan loadmonMessage
+  writer *MongoWriter
 }
 
 type CallTotal struct {
@@ -26,9 +24,9 @@ func (a *Aggregator) Listen() {
   for {
     select {
     case message := <- a.message_chan:
-      a.Log(message)
-      /*go a.updateDnis(message)*/
-      //go a.updateTotal(message)
+      //a.Log(message)
+      go a.updateDnis(message)
+      go a.updateTotal(message)
       go a.updateAppId(message)
     }
   }
@@ -36,6 +34,7 @@ func (a *Aggregator) Listen() {
 
 func (a *Aggregator) updateDnis(l loadmonMessage) {
   fmt.Println("updateDnis")
+  fmt.Println(l)
 }
 
 func (a *Aggregator) updateTotal(l loadmonMessage) {
@@ -52,30 +51,17 @@ func (a *Aggregator) updateTotal(l loadmonMessage) {
     inttot,_ := strconv.ParseInt(l.fieldMap["num_inbound"],10,64)
     outtot,_ := strconv.ParseInt(l.fieldMap["num_outbound"],10,64)
 
-    query := bson.M{"day":t.YearDay()}
-    change := bson.M{"$inc": bson.M{
-      "daily":tot,
-      "dailyinbound":inttot,
-      "dailyoutbound":outtot,
-      "hourly."+hour: tot,
-      "minute."+hour+"."+minute: tot,
-    }}
-
-    mongo_err := a.collection.Update(query,change)
-    if mongo_err != nil {
-      panic(mongo_err)
-      return
-    }
+    a.writer.UpdateTotal(t,hour,minute,tot,inttot,outtot)
   }
 }
 
 func (a *Aggregator) updateAppId(l loadmonMessage) {
   if l.messageType != "loadmon_call" {
+    fmt.Println(l)
   }
 }
 
 func (a *Aggregator) Log(l loadmonMessage) {
-  fmt.Println(l);
 }
 
 func (a *Aggregator) Process(m string) {

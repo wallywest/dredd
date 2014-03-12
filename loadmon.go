@@ -5,22 +5,32 @@ import(
   "os"
   "flag"
   "listener"
-  "labix.org/v2/mgo"
+  log "github.com/cihub/seelog"
 )
 
 const(
   VERSION = "0.0.1"
   LOADMON_DB = "loadmon"
   LOADMON_COLLECTION = "loadmon_test"
-  MONGO_URL = "localhost:27017"
 )
+
+var testConfig = `
+<seelog>
+<outputs>
+<file path="./log/main.log"/>
+</outputs>
+</seelog>`
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var memprofile = flag.String("memprofile", "", "write memory profile to this file")
 
+
 func main(){
-  fmt.Println("Version:",VERSION)
+  fmt.Printf("Version: %v",VERSION)
   mode := "unknown"
+ 
+  Logger,_ := log.LoggerFromConfigAsBytes([]byte(testConfig))
+  log.ReplaceLogger(Logger)
 
   if len(os.Args) > 1 {
     mode = os.Args[1]
@@ -37,21 +47,9 @@ func main(){
 
   if mode == "start" {
     fmt.Println("running start")
-    session := setupDB()
-    defer session.Close()
-    collection := session.DB(LOADMON_DB).C(LOADMON_COLLECTION)
+    listener.NewMongoConnection()
+    defer listener.MongoConnection.Close()
 
-    listener.Run(collection)
+    listener.Run()
   }
-}
-
-func setupDB() *mgo.Session{
-  fmt.Println("settign up collection")
-  session,err := mgo.Dial(MONGO_URL)
-  if err != nil {
-    panic(err)
-  }
-
-  session.SetMode(mgo.Monotonic, true)
-  return session
 }

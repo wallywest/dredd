@@ -30,19 +30,9 @@ func TCPListen(addr string, port int) (listener *TCPListener) {
   return
 }
 
-
-/*func (t *TCPListener) listen() {*/
-  //for {
-    //select {
-    //case message := <-t.c_packets:
-      //stream := &Stream{data: message}
-      //go stream.Process(t.collection)
-    //}
-  //}
-/*}*/
-
 func (t *TCPListener) readRawSocket() {
-  socket, err := net.Listen("tcp",":10500")
+  //fix this
+  socket, err := net.Listen("tcp",":10503")
   defer socket.Close()
   if err != nil {
     fmt.Printf("Error is: %v\n",err)
@@ -64,11 +54,8 @@ func (t *TCPListener) readPackets(conn net.Conn, reader *bufio.Reader) {
   for {
     message, err := reader.ReadString('`')
     if err != nil {
-      //fmt.Printf("Error: %v",err)
       return
     }
-    //fmt.Println(message)
-    //fmt.Println("--------------")
     t.c_messages <- message
     t.sendAck(conn)
   }

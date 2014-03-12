@@ -57,6 +57,8 @@ func(l *loadmonDnis) parse(fields []string) map[string]string{
 func (m *loadmonMessage) parse(fields []string, s interface{}){
   obj,err := s.(LoadmonMessage)
   if !err {
+    fmt.Println(s)
+    fmt.Println(fields)
     fmt.Println("Could not find object")
     return
   }

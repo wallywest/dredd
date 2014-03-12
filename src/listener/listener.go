@@ -2,10 +2,10 @@ package listener
 
 import(
   "fmt"
-  "labix.org/v2/mgo"
+  log "github.com/cihub/seelog"
 )
 
-func Run(s *mgo.Collection) {
+func Run() {
   fmt.Println("running loadmon")
   fmt.Println(Settings)
   listener := TCPListen(Settings.Address,Settings.Port)
@@ -18,15 +18,16 @@ func Run(s *mgo.Collection) {
   chan_listeners = append(chan_listeners,app_id_chan,dnis_chan,total_chan)
 
   aggregator := &Aggregator{
-    collection: s,
     message_chan: make(chan loadmonMessage),
     listeners: chan_listeners,
+    writer: &MongoConnection,
   }
 
   go aggregator.Listen()
 
   for {
     m := listener.Receive()
-    aggregator.Process(m)
+    log.Info(m)
+    //aggregator.Process(m)
   }
 }

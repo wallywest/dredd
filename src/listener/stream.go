@@ -13,8 +13,10 @@ func (s *Stream) Process(m chan loadmonMessage) {
   split := strings.Split(s.data,"}")
   for _,v := range split[0:len(split)-1] {
     record := strings.Split(v,"|")
-    m_type := record[0]
+    m_type := strings.TrimPrefix(record[0],"\"\"")
     fields := record[1:len(record)]
+    fmt.Println("TYPE IS")
+    fmt.Println(m_type)
 
     message := NewLoadmonMessage(m_type,fields)
     m <- *message
