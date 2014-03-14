@@ -1,31 +1,31 @@
-package listener
+package dredd
 import(
   "strings"
   "fmt"
 )
 
-type Stream struct {
-  data string
+type Parser struct {
+  loadmon_message_chan chan *loadmonMessage
   messages []loadmonMessage
 }
 
-func (s *Stream) Process(m chan loadmonMessage) {
-  split := strings.Split(s.data,"}")
+func (s *Parser) Process(data string) {
+  split := strings.Split(data,"}")
   for _,v := range split[0:len(split)-1] {
     record := strings.Split(v,"|")
     m_type := strings.TrimPrefix(record[0],"\"\"")
     fields := record[1:len(record)]
-    fmt.Println("TYPE IS")
-    fmt.Println(m_type)
+    /*fmt.Println("TYPE IS")*/
+    //fmt.Println(m_type)
 
     message := NewLoadmonMessage(m_type,fields)
-    m <- *message
+    s.loadmon_message_chan <-message
     //s.messages = append(s.messages,*message)
   }
   //s.message_chan <- s.messages
 }
 
-func (s *Stream) Log() {
+func (s *Parser) Log() {
   fmt.Printf("Messages length is: %v\n",len(s.messages))
   fmt.Printf("Messages are: %v\n",s.messages)
   for _,message := range s.messages {

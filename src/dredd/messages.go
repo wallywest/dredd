@@ -1,9 +1,16 @@
-package listener
+package dredd
 
 import(
   "fmt"
+  "strconv"
+  "time"
+  "math"
 )
 
+
+const(
+  INTERVAL = 15
+)
 
 type LoadmonMessage interface {
   parse([] string) map[string]string
@@ -18,32 +25,52 @@ type loadmonOutcome struct {}
 type loadmonDnis struct {}
 type loadmonCall struct {}
 
+func normalize(ts string) string{
+  t,_ := strconv.ParseInt(ts,10,64)
+  wow := time.Unix(t,0)
+  s := wow.Second()
+  remainder := math.Mod(float64(s),float64(INTERVAL))
+  blah := (t - int64(remainder))
+  return strconv.FormatInt(blah,10)
+}
+
+
 func(l *loadmonCall) parse(fields []string) map[string]string{
-    return map[string]string{
-      "cdr": fields[0],
-      "timestamp": fields[1],
-      "num_total": fields[2],
-      "num_inbound": fields[3],
-      "num_outbound": fields[4],
-    }
+  ts := fields[1]
+  normalized := normalize(ts)
+  return map[string]string{
+    "cdr": fields[0],
+    "timestamp": ts,
+    "num_total": fields[2],
+    "num_inbound": fields[3],
+    "num_outbound": fields[4],
+    "normalized_ts": normalized,
+  }
 }
 
 func(l *loadmonOutcome) parse(fields []string) map[string]string{
-    return map[string]string{
-      "cdr": fields[0],
-      "timestamp": fields[1],
-      "dnis": fields[2],
-      "outcome": fields[3],
-      "app_id": fields[4],
-      "job_id": fields[5],
-      "count": fields[6],
-    }
+  ts := fields[1]
+  normalized := normalize(ts)
+
+  return map[string]string{
+    "cdr": fields[0],
+    "timestamp": ts,
+    "dnis": fields[2],
+    "outcome": fields[3],
+    "app_id": fields[4],
+    "job_id": fields[5],
+    "count": fields[6],
+    "normalized_ts":normalized,
+  }
 }
 
 func(l *loadmonDnis) parse(fields []string) map[string]string{
+  ts := fields[1]
+  normalized := normalize(ts)
+
   return map[string]string{
       "cdr": fields[0],
-      "timestamp": fields[1],
+      "timestamp": ts,
       "dnis": fields[2],
       "app_id": fields[3],
       "job_id": fields[4],
@@ -51,6 +78,7 @@ func(l *loadmonDnis) parse(fields []string) map[string]string{
       "num_active": fields[6],
       "num_complete": fields[7],
       "total_time": fields[8],
+      "normalized_ts":normalized,
     }
 }
 
@@ -83,5 +111,5 @@ func NewLoadmonMessage(m_type string,fields []string) (l *loadmonMessage){
   l.messageType = m_type
   obj := l.buildObject(fields)
   l.parse(fields,obj)
-  return l
+  return
 }

@@ -1,4 +1,4 @@
-package listener
+package dredd
 
 import(
   "bufio"
@@ -8,32 +8,31 @@ import(
 
 const(
   LOADMON_END = "`"
+  SOCKET = ":10503"
 )
 
 type TCPListener struct {
-  c_messages chan string
-  c_packets chan string
+  raw_messages chan string
   addr string
   port int
 }
 
-func TCPListen(addr string, port int) (listener *TCPListener) {
+func NewTCPListener(addr string, port int) (listener *TCPListener) {
   listener = &TCPListener{}
 
-  listener.c_messages = make(chan string)
-  listener.c_packets = make(chan string)
+  listener.raw_messages = make(chan string)
 
   listener.addr = addr
   listener.port = port
 
-  go listener.readRawSocket()
+  go listener.readSocket()
   return
 }
 
-func (t *TCPListener) readRawSocket() {
-  //fix this
-  socket, err := net.Listen("tcp",":10503")
+func (t *TCPListener) readSocket() {
+  socket, err := net.Listen("tcp",SOCKET)
   defer socket.Close()
+
   if err != nil {
     fmt.Printf("Error is: %v\n",err)
   }
@@ -56,17 +55,12 @@ func (t *TCPListener) readPackets(conn net.Conn, reader *bufio.Reader) {
     if err != nil {
       return
     }
-    t.c_messages <- message
+    t.raw_messages <- message
     t.sendAck(conn)
   }
 }
 
 func (t *TCPListener) sendAck(conn net.Conn){
-  fmt.Println("Writing Ack")
   b := []byte("OK`")
   conn.Write(b)
-}
-
-func (t *TCPListener) Receive() string{
-  return <-t.c_messages
 }

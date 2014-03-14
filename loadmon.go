@@ -4,7 +4,7 @@ import(
   "fmt"
   "os"
   "flag"
-  "listener"
+  "dredd"
   log "github.com/cihub/seelog"
 )
 
@@ -47,9 +47,9 @@ func main(){
 
   if mode == "start" {
     fmt.Println("running start")
-    listener.NewMongoConnection()
-    defer listener.MongoConnection.Close()
+    dredd.NewMongoConnection()
+    defer dredd.MongoConnection.Close()
 
-    listener.Run()
+    dredd.Run()
   }
 }
